@@ -1,0 +1,44 @@
+package starbound
+
+import (
+	"os"
+	"testing"
+)
+
+func getDB(t *testing.T) *BTreeDB5 {
+	file, err := os.Open("test.world")
+	if err != nil {
+		t.Fatalf("failed to open world file: %v", err)
+	}
+	db, err := NewBTreeDB5(file)
+	if err != nil {
+		t.Fatalf("failed to read world: %v", err)
+	}
+	return db
+}
+
+func TestHeader(t *testing.T) {
+	db := getDB(t)
+	if db.Name != "World4" {
+		t.Errorf("incorrect database name: %v", db.Name)
+	}
+}
+
+func TestInvalidKeyLength(t *testing.T) {
+	db := getDB(t)
+	_, err := db.Get([]byte("\x00\x00\x00\x00"))
+	if err != ErrInvalidKeyLength {
+		t.Errorf("expected invalid key length, got: %v", err)
+	}
+}
+
+func TestMissingKey(t *testing.T) {
+	db := getDB(t)
+	data, err := db.Get([]byte("\x00\x00\x00\x00\x01"))
+	if data != nil {
+		t.Error("data should be <nil>")
+	}
+	if err != ErrKeyNotFound {
+		t.Errorf("expected key error, got: %v", err)
+	}
+}
