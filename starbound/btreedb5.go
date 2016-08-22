@@ -78,7 +78,8 @@ func (db *BTreeDB5) Get(key []byte) (data []byte, err error) {
 		bufSize = db.KeySize
 	}
 	buf := make([]byte, bufSize)
-	block, offset := 0, db.blockOffset(db.RootBlock())
+	block := db.RootBlock()
+	offset := db.blockOffset(block)
 	entrySize := db.KeySize + 4
 	// Traverse the B-tree until we reach a leaf.
 	for {
