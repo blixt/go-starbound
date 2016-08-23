@@ -61,7 +61,14 @@ func BenchmarkHeader(b *testing.B) {
 	}
 }
 
-func BenchmarkLookup(b *testing.B) {
+func BenchmarkLookupFail(b *testing.B) {
+	db := getDB(b)
+	for i := 0; i < b.N; i++ {
+		db.Get([]byte("\x04\x03\x02\x01\x00"))
+	}
+}
+
+func BenchmarkLookupSuccess(b *testing.B) {
 	db := getDB(b)
 	for i := 0; i < b.N; i++ {
 		db.Get([]byte("\x00\x00\x00\x00\x00"))
