@@ -182,6 +182,7 @@ type LeafReader struct {
 	cur, end   int64
 }
 
+// Reads n bytes from the LeafReader, jumping to the next leaf when necessary.
 func (l *LeafReader) Read(p []byte) (n int, err error) {
 	off, n, err := l.step(len(p))
 	if err != nil {
@@ -191,6 +192,9 @@ func (l *LeafReader) Read(p []byte) (n int, err error) {
 	return
 }
 
+// Increments the LeafReader pointer by n bytes. This may require several reads
+// from the underlying ReaderAt as the LeafReader reaches the boundary of the
+// current leaf.
 func (l *LeafReader) Skip(n int) error {
 	for n > 0 {
 		if _, m, err := l.step(n); err != nil {

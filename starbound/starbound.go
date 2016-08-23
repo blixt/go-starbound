@@ -18,6 +18,7 @@ const (
 	WorldDatabaseName = "World4"
 )
 
+// NewWorld creates and initializes a new World using r as the data source.
 func NewWorld(r io.ReaderAt) (w *World, err error) {
 	db, err := NewBTreeDB5(r)
 	if err != nil {
@@ -29,6 +30,8 @@ func NewWorld(r io.ReaderAt) (w *World, err error) {
 	return &World{db}, nil
 }
 
+// A World is a representation of a Starbound world, enabling read access to
+// individual regions in the world as well as its metadata.
 type World struct {
 	*BTreeDB5
 }
@@ -55,6 +58,7 @@ func (w *World) GetReader(layer, x, y int) (r io.Reader, err error) {
 	return zlib.NewReader(lr)
 }
 
+// Reads a 32-bit integer from the provided buffer and offset.
 func getInt(data []byte, n int) int {
 	return int(data[n])<<24 | int(data[n+1])<<16 | int(data[n+2])<<8 | int(data[n+3])
 }
