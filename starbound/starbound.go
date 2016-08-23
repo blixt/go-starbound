@@ -1,7 +1,10 @@
 package starbound
 
 import (
+	"bytes"
+	"compress/zlib"
 	"errors"
+	"io"
 )
 
 var (
@@ -10,6 +13,44 @@ var (
 	ErrInvalidKeyLength = errors.New("starbound: invalid key length")
 	ErrKeyNotFound      = errors.New("starbound: key not found")
 )
+
+func NewWorld(r io.ReaderAt) (w *World, err error) {
+	db, err := NewBTreeDB5(r)
+	if err != nil {
+		return
+	}
+	return &World{db}, nil
+}
+
+type World struct {
+	*BTreeDB5
+}
+
+func (w *World) Get(layer, x, y int) (data []byte, err error) {
+	src, err := w.GetReader(layer, x, y)
+	if err != nil {
+		return
+	}
+	dst := new(bytes.Buffer)
+	_, err = io.Copy(dst, src)
+	if err != nil {
+		return
+	}
+	return dst.Bytes(), nil
+}
+
+func (w *World) GetReader(layer, x, y int) (r io.Reader, err error) {
+	key := []byte{
+		byte(layer & 255),
+		byte(x >> 8 & 255), byte(x & 255),
+		byte(y >> 8 & 255), byte(y & 255),
+	}
+	lr, err := w.BTreeDB5.GetReader(key)
+	if err != nil {
+		return nil, err
+	}
+	return zlib.NewReader(lr)
+}
 
 func getInt(data []byte, n int) int {
 	return int(data[n])<<24 | int(data[n+1])<<16 | int(data[n+2])<<8 | int(data[n+3])
