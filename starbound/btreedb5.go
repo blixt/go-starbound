@@ -129,13 +129,16 @@ func (db *BTreeDB5) Get(key []byte) (data []byte, err error) {
 		if n, err = ReadVarint(r); err != nil {
 			return
 		}
-		// TODO: Allow skipping without reading.
-		temp := make([]byte, n)
-		if _, err = io.ReadFull(r, temp); err != nil {
+		// Is this the key you're looking for?
+		if bytes.Equal(bufKey, key) {
+			data = make([]byte, n)
+			_, err = io.ReadFull(r, data)
 			return
 		}
-		if bytes.Equal(bufKey, key) {
-			return temp, nil
+		// This isn't the key you're looking for.
+		err = r.Skip(int(n))
+		if err != nil {
+			return
 		}
 	}
 	return nil, ErrKeyNotFound
@@ -154,39 +157,64 @@ func (db *BTreeDB5) blockOffset(block int) int64 {
 }
 
 func NewLeafReader(db *BTreeDB5, block int) *LeafReader {
-	return &LeafReader{
-		db:  db,
-		cur: db.blockOffset(block),
+	l := &LeafReader{
+		db:   db,
+		buf4: make([]byte, 4),
+		cur:  db.blockOffset(block),
 	}
+	l.buf2 = l.buf4[:2]
+	return l
 }
 
 type LeafReader struct {
-	db       *BTreeDB5
-	cur, end int64
+	db         *BTreeDB5
+	buf2, buf4 []byte
+	cur, end   int64
 }
 
 func (l *LeafReader) Read(p []byte) (n int, err error) {
-	buf := make([]byte, 4)
+	off, n, err := l.step(len(p))
+	if err != nil {
+		return
+	}
+	n, err = l.db.r.ReadAt(p[:n], off)
+	return
+}
+
+func (l *LeafReader) Skip(n int) error {
+	for n > 0 {
+		if _, m, err := l.step(n); err != nil {
+			return err
+		} else {
+			n -= m
+		}
+	}
+	return nil
+}
+
+func (l *LeafReader) step(max int) (off int64, n int, err error) {
+	// We're at the end of the block – move to the next one.
+	if l.cur == l.end {
+		l.db.r.ReadAt(l.buf4, l.cur)
+		l.cur = l.db.blockOffset(getInt(l.buf4, 0))
+		l.end = 0
+	}
+	// We haven't verified that the current block is a leaf yet.
 	if l.end == 0 {
-		if _, err = l.db.r.ReadAt(buf[:2], l.cur); err != nil {
+		if _, err = l.db.r.ReadAt(l.buf2, l.cur); err != nil {
 			return
 		}
-		if !bytes.Equal(buf[:2], BlockLeaf) {
-			return 0, ErrDidNotReachLeaf
+		if !bytes.Equal(l.buf2, BlockLeaf) {
+			return 0, 0, ErrDidNotReachLeaf
 		}
 		l.end = l.cur + int64(l.db.BlockSize-4)
 		l.cur += 2
 	}
-	want := int64(len(p))
-	if l.cur+want > l.end {
-		want = l.end - l.cur
+	// Move the current pointer forward.
+	off, n = l.cur, max
+	if l.cur+int64(n) > l.end {
+		n = int(l.end - l.cur)
 	}
-	n, err = l.db.r.ReadAt(p[:want], l.cur)
 	l.cur += int64(n)
-	if l.cur == l.end {
-		l.db.r.ReadAt(buf, l.cur)
-		l.cur = l.db.blockOffset(getInt(buf, 0))
-		l.end = 0
-	}
 	return
 }
