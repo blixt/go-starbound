@@ -70,6 +70,17 @@ func (db *BTreeDB5) FreeBlock() int {
 }
 
 func (db *BTreeDB5) Get(key []byte) (data []byte, err error) {
+	r, err := db.GetReader(key)
+	if err != nil {
+		return
+	}
+	lr := r.(*io.LimitedReader)
+	data = make([]byte, lr.N)
+	_, err = io.ReadFull(r, data)
+	return
+}
+
+func (db *BTreeDB5) GetReader(key []byte) (r io.Reader, err error) {
 	if len(key) != db.KeySize {
 		return nil, ErrInvalidKeyLength
 	}
@@ -116,27 +127,26 @@ func (db *BTreeDB5) Get(key []byte) (data []byte, err error) {
 		offset = db.blockOffset(block)
 	}
 	// Scan leaves for the key, then read the data.
-	r := NewLeafReader(db, block)
-	if _, err = r.Read(bufBlock); err != nil {
+	lr := NewLeafReader(db, block)
+	if _, err = lr.Read(bufBlock); err != nil {
 		return
 	}
 	keyCount := getInt(buf, 0)
 	for i := 0; i < keyCount; i += 1 {
-		if _, err = r.Read(bufKey); err != nil {
+		if _, err = lr.Read(bufKey); err != nil {
 			return
 		}
 		var n int64
-		if n, err = ReadVarint(r); err != nil {
+		if n, err = ReadVarint(lr); err != nil {
 			return
 		}
 		// Is this the key you're looking for?
 		if bytes.Equal(bufKey, key) {
-			data = make([]byte, n)
-			_, err = io.ReadFull(r, data)
-			return
+			// Key found. Return a reader for the value.
+			return io.LimitReader(lr, n), nil
 		}
 		// This isn't the key you're looking for.
-		err = r.Skip(int(n))
+		err = lr.Skip(int(n))
 		if err != nil {
 			return
 		}
