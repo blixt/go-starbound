@@ -10,11 +10,11 @@ const (
 )
 
 var (
-	BlockFree  = []byte("FF")
-	BlockIndex = []byte("II")
-	BlockLeaf  = []byte("LL")
+	BTreeDB5BlockFree  = []byte("FF")
+	BTreeDB5BlockIndex = []byte("II")
+	BTreeDB5BlockLeaf  = []byte("LL")
 
-	HeaderSignature = []byte("BTreeDB5")
+	BTreeDB5Signature = []byte("BTreeDB5")
 )
 
 func NewBTreeDB5(r io.ReaderAt) (db *BTreeDB5, err error) {
@@ -24,7 +24,7 @@ func NewBTreeDB5(r io.ReaderAt) (db *BTreeDB5, err error) {
 	if n != len(header) || err != nil {
 		return nil, ErrInvalidHeader
 	}
-	if !bytes.Equal(header[:8], HeaderSignature) {
+	if !bytes.Equal(header[:8], BTreeDB5Signature) {
 		return nil, ErrInvalidHeader
 	}
 	db.BlockSize = getInt(header, 8)
@@ -90,7 +90,7 @@ func (db *BTreeDB5) Get(key []byte) (data []byte, err error) {
 		if _, err = db.r.ReadAt(bufHead, offset); err != nil {
 			return
 		}
-		if !bytes.Equal(bufType, BlockIndex) {
+		if !bytes.Equal(bufType, BTreeDB5BlockIndex) {
 			break
 		}
 		offset += 11
@@ -204,7 +204,7 @@ func (l *LeafReader) step(max int) (off int64, n int, err error) {
 		if _, err = l.db.r.ReadAt(l.buf2, l.cur); err != nil {
 			return
 		}
-		if !bytes.Equal(l.buf2, BlockLeaf) {
+		if !bytes.Equal(l.buf2, BTreeDB5BlockLeaf) {
 			return 0, 0, ErrDidNotReachLeaf
 		}
 		l.end = l.cur + int64(l.db.BlockSize-4)
