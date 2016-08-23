@@ -60,13 +60,19 @@ func BenchmarkHeader(b *testing.B) {
 func BenchmarkLookupFail(b *testing.B) {
 	db := getDB(b)
 	for i := 0; i < b.N; i++ {
-		db.Get([]byte("\x04\x03\x02\x01\x00"))
+		_, err := db.Get([]byte("\x04\x03\x02\x01\x00"))
+		if err != ErrKeyNotFound {
+			b.Fatalf("expected ErrKeyNotFound, but got: %v", err)
+		}
 	}
 }
 
 func BenchmarkLookupSuccess(b *testing.B) {
 	db := getDB(b)
 	for i := 0; i < b.N; i++ {
-		db.Get([]byte("\x00\x00\x00\x00\x00"))
+		_, err := db.Get([]byte("\x00\x00\x00\x00\x00"))
+		if err != nil {
+			b.Fatalf("unexpected error: %v", err)
+		}
 	}
 }
