@@ -5,16 +5,12 @@ import (
 	"testing"
 )
 
-const (
-	WORLD = "../test.world"
-)
-
 type logger interface {
 	Fatalf(format string, args ...interface{})
 }
 
 func getDB(log logger) *BTreeDB5 {
-	file, err := os.Open(WORLD)
+	file, err := os.Open("../test.world")
 	if err != nil {
 		log.Fatalf("failed to open world file: %v", err)
 	}
@@ -52,7 +48,7 @@ func TestMissingKey(t *testing.T) {
 }
 
 func BenchmarkHeader(b *testing.B) {
-	file, err := os.Open(WORLD)
+	file, err := os.Open("../test.world")
 	if err != nil {
 		b.Fatalf("failed to open world file: %v", err)
 	}
