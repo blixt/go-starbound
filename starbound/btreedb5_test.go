@@ -50,3 +50,20 @@ func TestMissingKey(t *testing.T) {
 		t.Errorf("expected key error, got: %v", err)
 	}
 }
+
+func BenchmarkHeader(b *testing.B) {
+	file, err := os.Open(WORLD)
+	if err != nil {
+		b.Fatalf("failed to open world file: %v", err)
+	}
+	for i := 0; i < b.N; i++ {
+		NewBTreeDB5(file)
+	}
+}
+
+func BenchmarkLookup(b *testing.B) {
+	db := getDB(b)
+	for i := 0; i < b.N; i++ {
+		db.Get([]byte("\x00\x00\x00\x00\x00"))
+	}
+}
