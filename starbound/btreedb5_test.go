@@ -5,14 +5,22 @@ import (
 	"testing"
 )
 
-func getDB(t *testing.T) *BTreeDB5 {
-	file, err := os.Open("test.world")
+const (
+	WORLD = "../test.world"
+)
+
+type logger interface {
+	Fatalf(format string, args ...interface{})
+}
+
+func getDB(log logger) *BTreeDB5 {
+	file, err := os.Open(WORLD)
 	if err != nil {
-		t.Fatalf("failed to open world file: %v", err)
+		log.Fatalf("failed to open world file: %v", err)
 	}
 	db, err := NewBTreeDB5(file)
 	if err != nil {
-		t.Fatalf("failed to read world: %v", err)
+		log.Fatalf("failed to read world: %v", err)
 	}
 	return db
 }
