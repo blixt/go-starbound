@@ -78,15 +78,19 @@ func (db *BTreeDB5) Get(key []byte) (data []byte, err error) {
 		bufSize = db.KeySize
 	}
 	buf := make([]byte, bufSize)
+	bufBlock := buf[:4]
+	bufHead := buf[:11]
+	bufKey := buf[:db.KeySize]
+	bufType := buf[:2]
 	block := db.RootBlock()
 	offset := db.blockOffset(block)
 	entrySize := db.KeySize + 4
 	// Traverse the B-tree until we reach a leaf.
 	for {
-		if _, err = db.r.ReadAt(buf[:11], offset); err != nil {
+		if _, err = db.r.ReadAt(bufHead, offset); err != nil {
 			return
 		}
-		if !bytes.Equal(buf[:2], BlockIndex) {
+		if !bytes.Equal(bufType, BlockIndex) {
 			break
 		}
 		offset += 11
@@ -95,10 +99,10 @@ func (db *BTreeDB5) Get(key []byte) (data []byte, err error) {
 		block = getInt(buf, 7)
 		for lo < hi {
 			mid := (lo + hi) / 2
-			if _, err = db.r.ReadAt(buf[:db.KeySize], offset+int64(entrySize*mid)); err != nil {
+			if _, err = db.r.ReadAt(bufKey, offset+int64(entrySize*mid)); err != nil {
 				return
 			}
-			if bytes.Compare(key, buf[:db.KeySize]) < 0 {
+			if bytes.Compare(key, bufKey) < 0 {
 				hi = mid
 			} else {
 				lo = mid + 1
@@ -106,19 +110,19 @@ func (db *BTreeDB5) Get(key []byte) (data []byte, err error) {
 		}
 		if lo > 0 {
 			// A candidate leaf/index was found in the current index. Get the block index.
-			db.r.ReadAt(buf[:4], offset+int64(entrySize*(lo-1)+db.KeySize))
+			db.r.ReadAt(bufBlock, offset+int64(entrySize*(lo-1)+db.KeySize))
 			block = getInt(buf, 0)
 		}
 		offset = db.blockOffset(block)
 	}
 	// Scan leaves for the key, then read the data.
 	r := NewLeafReader(db, block)
-	if _, err = r.Read(buf[:4]); err != nil {
+	if _, err = r.Read(bufBlock); err != nil {
 		return
 	}
 	keyCount := getInt(buf, 0)
 	for i := 0; i < keyCount; i += 1 {
-		if _, err = r.Read(buf[:db.KeySize]); err != nil {
+		if _, err = r.Read(bufKey); err != nil {
 			return
 		}
 		var n int64
@@ -130,7 +134,7 @@ func (db *BTreeDB5) Get(key []byte) (data []byte, err error) {
 		if _, err = io.ReadFull(r, temp); err != nil {
 			return
 		}
-		if bytes.Equal(buf[:db.KeySize], key) {
+		if bytes.Equal(bufKey, key) {
 			return temp, nil
 		}
 	}
