@@ -40,11 +40,7 @@ func (w *World) Get(layer, x, y int) (data []byte, err error) {
 }
 
 func (w *World) GetReader(layer, x, y int) (r io.Reader, err error) {
-	key := []byte{
-		byte(layer & 255),
-		byte(x >> 8 & 255), byte(x & 255),
-		byte(y >> 8 & 255), byte(y & 255),
-	}
+	key := []byte{byte(layer), byte(x >> 8), byte(x), byte(y >> 8), byte(y)}
 	lr, err := w.BTreeDB5.GetReader(key)
 	if err != nil {
 		return nil, err
