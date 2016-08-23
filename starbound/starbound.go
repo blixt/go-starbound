@@ -14,10 +14,17 @@ var (
 	ErrKeyNotFound      = errors.New("starbound: key not found")
 )
 
+const (
+	WorldDatabaseName = "World4"
+)
+
 func NewWorld(r io.ReaderAt) (w *World, err error) {
 	db, err := NewBTreeDB5(r)
 	if err != nil {
 		return
+	}
+	if db.Name != WorldDatabaseName || db.KeySize != 5 {
+		return nil, ErrInvalidHeader
 	}
 	return &World{db}, nil
 }
