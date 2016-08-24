@@ -101,3 +101,7 @@ func (w *World) GetTiles(x, y int) (t []Tile, err error) {
 func getInt(data []byte, n int) int {
 	return int(data[n])<<24 | int(data[n+1])<<16 | int(data[n+2])<<8 | int(data[n+3])
 }
+
+type logger interface {
+	Fatalf(format string, args ...interface{})
+}

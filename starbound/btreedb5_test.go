@@ -5,10 +5,6 @@ import (
 	"testing"
 )
 
-type logger interface {
-	Fatalf(format string, args ...interface{})
-}
-
 func getDB(log logger) *BTreeDB5 {
 	file, err := os.Open("../test.world")
 	if err != nil {
