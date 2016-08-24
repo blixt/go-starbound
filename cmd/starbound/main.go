@@ -14,11 +14,15 @@ func main() {
 		fmt.Printf("failed to open world: %v\n", err)
 		os.Exit(1)
 	}
-	db, err := starbound.NewBTreeDB5(file)
+	w, err := starbound.NewWorld(file)
 	if err != nil {
 		fmt.Printf("failed to open world: %v\n", err)
 		os.Exit(1)
 	}
-	value, err := db.Get([]byte("\x00\x00\x00\x00\x00"))
-	fmt.Printf("metadata size: %d\n", len(value))
+	t, err := w.GetRegion(30, 21)
+	if err != nil {
+		fmt.Printf("failed to get region: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("region:", t)
 }
