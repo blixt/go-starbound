@@ -80,7 +80,7 @@ func (w *World) GetReader(layer, x, y int) (r io.Reader, err error) {
 	return zlib.NewReader(lr)
 }
 
-func (w *World) GetRegion(x, y int) (t []Tile, err error) {
+func (w *World) GetTiles(x, y int) (t []Tile, err error) {
 	r, err := w.GetReader(1, x, y)
 	if err != nil {
 		return

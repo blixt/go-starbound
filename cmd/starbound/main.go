@@ -19,7 +19,7 @@ func main() {
 		fmt.Printf("failed to open world: %v\n", err)
 		os.Exit(1)
 	}
-	t, err := w.GetRegion(30, 21)
+	t, err := w.GetTiles(30, 21)
 	if err != nil {
 		fmt.Printf("failed to get region: %v\n", err)
 		os.Exit(1)
