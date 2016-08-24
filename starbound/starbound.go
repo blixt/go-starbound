@@ -3,6 +3,7 @@ package starbound
 import (
 	"bytes"
 	"compress/zlib"
+	"encoding/binary"
 	"errors"
 	"io"
 )
@@ -17,6 +18,27 @@ var (
 const (
 	WorldDatabaseName = "World4"
 )
+
+type Tile struct {
+	ForegroundMaterial    int16
+	ForegroundHueShift    uint8
+	ForegroundVariant     uint8
+	ForegroundMod         int16
+	ForegroundModHueShift uint8
+	BackgroundMaterial    int16
+	BackgroundHueShift    uint8
+	BackgroundVariant     uint8
+	BackgroundMod         int16
+	BackgroundModHueShift uint8
+	Liquid                uint8
+	LiquidLevel           float32
+	LiquidPressure        float32
+	LiquidInfinite        uint8 // bool
+	Collision             uint8
+	DungeonID             uint16
+	Biome1, Biome2        uint8
+	Indestructible        uint8 // bool
+}
 
 // NewWorld creates and initializes a new World using r as the data source.
 func NewWorld(r io.ReaderAt) (w *World, err error) {
@@ -56,6 +78,23 @@ func (w *World) GetReader(layer, x, y int) (r io.Reader, err error) {
 		return nil, err
 	}
 	return zlib.NewReader(lr)
+}
+
+func (w *World) GetRegion(x, y int) (t []Tile, err error) {
+	r, err := w.GetReader(1, x, y)
+	if err != nil {
+		return
+	}
+	// Ignore the first three bytes.
+	// TODO: Do something with these bytes?
+	discard := make([]byte, 3)
+	_, err = io.ReadFull(r, discard)
+	if err != nil {
+		return
+	}
+	t = make([]Tile, 1024) // 32x32 tiles in a region
+	err = binary.Read(r, binary.BigEndian, t)
+	return
 }
 
 // Reads a 32-bit integer from the provided buffer and offset.
