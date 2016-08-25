@@ -21,7 +21,10 @@ func BenchmarkWorldMetadata(b *testing.B) {
 	w := getWorld(b)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		w.Get(0, 0, 0)
+		err := w.ReadMetadata()
+		if err != nil {
+			b.Fatalf("unexpected error: %v", err)
+		}
 	}
 }
 

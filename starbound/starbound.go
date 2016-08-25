@@ -46,13 +46,15 @@ func NewWorld(r io.ReaderAt) (w *World, err error) {
 	if db.Name != "World4" || db.KeySize != 5 {
 		return nil, ErrInvalidHeader
 	}
-	return &World{db}, nil
+	return &World{BTreeDB5: db}, nil
 }
 
 // A World is a representation of a Starbound world, enabling read access to
 // individual regions in the world as well as its metadata.
 type World struct {
 	*BTreeDB5
+	Metadata      VersionedJSON
+	Width, Height int
 }
 
 func (w *World) Get(layer, x, y int) (data []byte, err error) {
@@ -111,6 +113,21 @@ func (w *World) GetTiles(x, y int) (t []Tile, err error) {
 	t = make([]Tile, 1024) // 32x32 tiles in a region
 	err = binary.Read(r, binary.BigEndian, t)
 	return
+}
+
+func (w *World) ReadMetadata() error {
+	r, err := w.GetReader(0, 0, 0)
+	if err != nil {
+		return err
+	}
+	wh := make([]int32, 2)
+	err = binary.Read(r, binary.BigEndian, wh)
+	if err != nil {
+		return err
+	}
+	w.Width, w.Height = int(wh[0]), int(wh[1])
+	w.Metadata, err = ReadVersionedJSON(r)
+	return err
 }
 
 func ReadVersionedJSON(r io.Reader) (v VersionedJSON, err error) {
