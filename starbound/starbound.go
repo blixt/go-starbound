@@ -16,10 +16,6 @@ var (
 	ErrKeyNotFound      = errors.New("starbound: key not found")
 )
 
-const (
-	WorldDatabaseName = "World4"
-)
-
 type Tile struct {
 	ForegroundMaterial    int16
 	ForegroundHueShift    uint8
@@ -47,7 +43,7 @@ func NewWorld(r io.ReaderAt) (w *World, err error) {
 	if err != nil {
 		return
 	}
-	if db.Name != WorldDatabaseName || db.KeySize != 5 {
+	if db.Name != "World4" || db.KeySize != 5 {
 		return nil, ErrInvalidHeader
 	}
 	return &World{db}, nil
