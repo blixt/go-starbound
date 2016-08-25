@@ -68,6 +68,25 @@ func (w *World) Get(layer, x, y int) (data []byte, err error) {
 	return dst.Bytes(), nil
 }
 
+func (w *World) GetEntities(x, y int) (e []VersionedJSON, err error) {
+	r, err := w.GetReader(2, x, y)
+	if err != nil {
+		return
+	}
+	n, err := ReadVaruint(r)
+	if err != nil {
+		return
+	}
+	e = make([]VersionedJSON, n)
+	for i := uint64(0); i < n; i++ {
+		e[i], err = ReadVersionedJSON(r)
+		if err != nil {
+			break
+		}
+	}
+	return
+}
+
 func (w *World) GetReader(layer, x, y int) (r io.Reader, err error) {
 	key := []byte{byte(layer), byte(x >> 8), byte(x), byte(y >> 8), byte(y)}
 	lr, err := w.BTreeDB5.GetReader(key)
