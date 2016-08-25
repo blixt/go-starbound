@@ -48,6 +48,7 @@ func BenchmarkHeader(b *testing.B) {
 	if err != nil {
 		b.Fatalf("failed to open world file: %v", err)
 	}
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		NewBTreeDB5(file)
 	}
@@ -55,6 +56,7 @@ func BenchmarkHeader(b *testing.B) {
 
 func BenchmarkLookupFail(b *testing.B) {
 	db := getDB(b)
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_, err := db.Get([]byte("\x04\x03\x02\x01\x00"))
 		if err != ErrKeyNotFound {
@@ -65,6 +67,7 @@ func BenchmarkLookupFail(b *testing.B) {
 
 func BenchmarkLookupSuccess(b *testing.B) {
 	db := getDB(b)
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_, err := db.Get([]byte("\x00\x00\x00\x00\x00"))
 		if err != nil {

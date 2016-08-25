@@ -19,6 +19,7 @@ func getWorld(log logger) *World {
 
 func BenchmarkWorldMetadata(b *testing.B) {
 	w := getWorld(b)
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		w.Get(0, 0, 0)
 	}
@@ -26,6 +27,7 @@ func BenchmarkWorldMetadata(b *testing.B) {
 
 func BenchmarkWorldTilesFail(b *testing.B) {
 	w := getWorld(b)
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_, err := w.GetTiles(123, 456)
 		if err != ErrKeyNotFound {
@@ -36,6 +38,7 @@ func BenchmarkWorldTilesFail(b *testing.B) {
 
 func BenchmarkWorldTilesSuccess(b *testing.B) {
 	w := getWorld(b)
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_, err := w.GetTiles(30, 21)
 		if err != nil {
