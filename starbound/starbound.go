@@ -10,9 +10,8 @@ import (
 
 var (
 	ErrDidNotReachLeaf  = errors.New("starbound: did not reach a leaf node")
-	ErrInvalidHeader    = errors.New("starbound: invalid header")
+	ErrInvalidData      = errors.New("starbound: data appears to be corrupt")
 	ErrInvalidKeyLength = errors.New("starbound: invalid key length")
-	ErrInvalidSBON      = errors.New("starbound: invalid SBON data")
 	ErrKeyNotFound      = errors.New("starbound: key not found")
 )
 
@@ -44,7 +43,7 @@ func NewWorld(r io.ReaderAt) (w *World, err error) {
 		return
 	}
 	if db.Name != "World4" || db.KeySize != 5 {
-		return nil, ErrInvalidHeader
+		return nil, ErrInvalidData
 	}
 	return &World{BTreeDB5: db}, nil
 }
@@ -143,7 +142,7 @@ func ReadVersionedJSON(r io.Reader) (v VersionedJSON, err error) {
 		return
 	}
 	if buf[0] != 1 {
-		return v, ErrInvalidHeader
+		return v, ErrInvalidData
 	}
 	// Read the data structure version.
 	var version int32

@@ -43,7 +43,7 @@ func ReadDynamic(r io.Reader) (v interface{}, err error) {
 	case 7:
 		return ReadMap(r)
 	}
-	return nil, ErrInvalidSBON
+	return nil, ErrInvalidData
 }
 
 func ReadList(r io.Reader) (l []interface{}, err error) {

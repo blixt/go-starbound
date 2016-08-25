@@ -16,10 +16,10 @@ func NewBTreeDB5(r io.ReaderAt) (db *BTreeDB5, err error) {
 	header := make([]byte, 67)
 	n, err := r.ReadAt(header, 0)
 	if n != len(header) || err != nil {
-		return nil, ErrInvalidHeader
+		return nil, ErrInvalidData
 	}
 	if !bytes.Equal(header[:8], []byte("BTreeDB5")) {
-		return nil, ErrInvalidHeader
+		return nil, ErrInvalidData
 	}
 	db.BlockSize = getInt(header, 8)
 	db.Name = string(bytes.TrimRight(header[12:28], "\x00"))
