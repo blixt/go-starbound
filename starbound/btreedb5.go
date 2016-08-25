@@ -130,14 +130,14 @@ func (db *BTreeDB5) GetReader(key []byte) (r io.Reader, err error) {
 		if _, err = lr.Read(bufKey); err != nil {
 			return
 		}
-		var n int64
-		if n, err = ReadVarint(lr); err != nil {
+		var n uint64
+		if n, err = ReadVaruint(lr); err != nil {
 			return
 		}
 		// Is this the key you're looking for?
 		if bytes.Equal(bufKey, key) {
 			// Key found. Return a reader for the value.
-			return io.LimitReader(lr, n), nil
+			return io.LimitReader(lr, int64(n)), nil
 		}
 		// This isn't the key you're looking for.
 		err = lr.Skip(int(n))

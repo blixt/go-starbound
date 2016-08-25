@@ -12,6 +12,7 @@ var (
 	ErrDidNotReachLeaf  = errors.New("starbound: did not reach a leaf node")
 	ErrInvalidHeader    = errors.New("starbound: invalid header")
 	ErrInvalidKeyLength = errors.New("starbound: invalid key length")
+	ErrInvalidSBON      = errors.New("starbound: invalid SBON data")
 	ErrKeyNotFound      = errors.New("starbound: key not found")
 )
 
