@@ -1,7 +1,6 @@
 package starbound
 
 import (
-	"bytes"
 	"compress/zlib"
 	"encoding/binary"
 	"io"
@@ -46,19 +45,6 @@ type World struct {
 	*BTreeDB5
 	Metadata      VersionedJSON
 	Width, Height int
-}
-
-func (w *World) Get(layer, x, y int) (data []byte, err error) {
-	src, err := w.GetReader(layer, x, y)
-	if err != nil {
-		return
-	}
-	dst := new(bytes.Buffer)
-	_, err = io.Copy(dst, src)
-	if err != nil {
-		return
-	}
-	return dst.Bytes(), nil
 }
 
 func (w *World) GetEntities(x, y int) (e []VersionedJSON, err error) {

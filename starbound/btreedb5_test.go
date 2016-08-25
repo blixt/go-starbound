@@ -1,6 +1,8 @@
 package starbound
 
 import (
+	"io"
+	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -26,7 +28,7 @@ func TestHeader(t *testing.T) {
 
 func TestInvalidKeyLength(t *testing.T) {
 	db := getDB(t)
-	_, err := db.Get([]byte("\x00\x00\x00\x00"))
+	_, err := db.GetReader([]byte("\x00\x00\x00\x00"))
 	if err != ErrInvalidKeyLength {
 		t.Errorf("expected invalid key length, got: %v", err)
 	}
@@ -34,9 +36,9 @@ func TestInvalidKeyLength(t *testing.T) {
 
 func TestMissingKey(t *testing.T) {
 	db := getDB(t)
-	data, err := db.Get([]byte("\x00\x00\x00\x00\x01"))
-	if data != nil {
-		t.Error("data should be <nil>")
+	r, err := db.GetReader([]byte("\x00\x00\x00\x00\x01"))
+	if r != nil {
+		t.Error("r should be <nil>")
 	}
 	if err != ErrKeyNotFound {
 		t.Errorf("expected key error, got: %v", err)
@@ -58,7 +60,7 @@ func BenchmarkLookupFail(b *testing.B) {
 	db := getDB(b)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := db.Get([]byte("\x04\x03\x02\x01\x00"))
+		_, err := db.GetReader([]byte("\x04\x03\x02\x01\x00"))
 		if err != ErrKeyNotFound {
 			b.Fatalf("expected ErrKeyNotFound, but got: %v", err)
 		}
@@ -69,7 +71,11 @@ func BenchmarkLookupSuccess(b *testing.B) {
 	db := getDB(b)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := db.Get([]byte("\x00\x00\x00\x00\x00"))
+		r, err := db.GetReader([]byte("\x00\x00\x00\x00\x00"))
+		if err != nil {
+			b.Fatalf("unexpected error: %v", err)
+		}
+		_, err = io.Copy(ioutil.Discard, r)
 		if err != nil {
 			b.Fatalf("unexpected error: %v", err)
 		}

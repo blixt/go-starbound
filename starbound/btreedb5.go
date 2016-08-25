@@ -63,17 +63,6 @@ func (db *BTreeDB5) FreeBlock() int {
 	}
 }
 
-func (db *BTreeDB5) Get(key []byte) (data []byte, err error) {
-	r, err := db.GetReader(key)
-	if err != nil {
-		return
-	}
-	lr := r.(*io.LimitedReader)
-	data = make([]byte, lr.N)
-	_, err = io.ReadFull(r, data)
-	return
-}
-
 func (db *BTreeDB5) GetReader(key []byte) (r io.Reader, err error) {
 	if len(key) != db.KeySize {
 		return nil, ErrInvalidKeyLength
