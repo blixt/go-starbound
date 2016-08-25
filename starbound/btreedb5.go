@@ -5,16 +5,10 @@ import (
 	"io"
 )
 
-const (
-	BTreeDB5HeaderSize = 512
-)
-
 var (
 	BTreeDB5BlockFree  = []byte("FF")
 	BTreeDB5BlockIndex = []byte("II")
 	BTreeDB5BlockLeaf  = []byte("LL")
-
-	BTreeDB5Signature = []byte("BTreeDB5")
 )
 
 func NewBTreeDB5(r io.ReaderAt) (db *BTreeDB5, err error) {
@@ -24,7 +18,7 @@ func NewBTreeDB5(r io.ReaderAt) (db *BTreeDB5, err error) {
 	if n != len(header) || err != nil {
 		return nil, ErrInvalidHeader
 	}
-	if !bytes.Equal(header[:8], BTreeDB5Signature) {
+	if !bytes.Equal(header[:8], []byte("BTreeDB5")) {
 		return nil, ErrInvalidHeader
 	}
 	db.BlockSize = getInt(header, 8)
@@ -163,7 +157,7 @@ func (db *BTreeDB5) RootBlock() int {
 }
 
 func (db *BTreeDB5) blockOffset(block int) int64 {
-	return BTreeDB5HeaderSize + int64(block*db.BlockSize)
+	return 512 + int64(block*db.BlockSize)
 }
 
 func NewLeafReader(db *BTreeDB5, block int) *LeafReader {
