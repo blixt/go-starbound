@@ -17,6 +17,17 @@ func getWorld(log logger) *World {
 	return w
 }
 
+func BenchmarkWorldEntities(b *testing.B) {
+	w := getWorld(b)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := w.GetEntities(30, 21)
+		if err != nil {
+			b.Fatalf("unexpected error: %v", err)
+		}
+	}
+}
+
 func BenchmarkWorldMetadata(b *testing.B) {
 	w := getWorld(b)
 	b.ResetTimer()
@@ -28,18 +39,7 @@ func BenchmarkWorldMetadata(b *testing.B) {
 	}
 }
 
-func BenchmarkWorldTilesFail(b *testing.B) {
-	w := getWorld(b)
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_, err := w.GetTiles(123, 456)
-		if err != ErrKeyNotFound {
-			b.Fatalf("expected ErrKeyNotFound, but got: %v", err)
-		}
-	}
-}
-
-func BenchmarkWorldTilesSuccess(b *testing.B) {
+func BenchmarkWorldTiles(b *testing.B) {
 	w := getWorld(b)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
