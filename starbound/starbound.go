@@ -173,3 +173,15 @@ func getInt(data []byte, n int) int {
 type logger interface {
 	Fatalf(format string, args ...interface{})
 }
+
+type readerAtReader struct {
+	r   io.ReaderAt
+	off int64
+}
+
+func (r *readerAtReader) Read(p []byte) (n int, err error) {
+	// TODO: Unset err if we read data and ReaderAt is still readable.
+	n, err = r.r.ReadAt(p, r.off)
+	r.off += int64(n)
+	return
+}
