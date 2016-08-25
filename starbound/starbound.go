@@ -94,6 +94,42 @@ func (w *World) GetTiles(x, y int) (t []Tile, err error) {
 	return
 }
 
+func ReadVersionedJSON(r io.Reader) (v VersionedJSON, err error) {
+	// Read the name of the data structure.
+	v.Name, err = ReadString(r)
+	if err != nil {
+		return
+	}
+	// Read unknown byte which is always 0x01.
+	buf := make([]byte, 1)
+	_, err = io.ReadFull(r, buf)
+	if err != nil {
+		return
+	}
+	if buf[0] != 1 {
+		return v, ErrInvalidHeader
+	}
+	// Read the data structure version.
+	var version int32
+	err = binary.Read(r, binary.BigEndian, &version)
+	if err != nil {
+		return
+	}
+	v.Version = int(version)
+	// Finally, read the JSON-like data itself.
+	v.Data, err = ReadDynamic(r)
+	return
+}
+
+// VersionedJSON represents a JSON-compatible data structure which additionally
+// has a name and version associated with it so that the reader may migrate the
+// structure based on the name/version.
+type VersionedJSON struct {
+	Name    string
+	Version int
+	Data    interface{}
+}
+
 // Reads a 32-bit integer from the provided buffer and offset.
 func getInt(data []byte, n int) int {
 	return int(data[n])<<24 | int(data[n+1])<<16 | int(data[n+2])<<8 | int(data[n+3])
