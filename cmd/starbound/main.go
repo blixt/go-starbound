@@ -1,28 +1,35 @@
 package main
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/blixt/go-starbound/starbound"
-	"golang.org/x/exp/mmap"
+	"flag"
+	"log"
+	"path"
 )
 
+var base = flag.String("dir", ".", "Starbound directory")
+var world = flag.String("world", "", "world filename")
+
+func check(err error, action string) {
+	if err == nil {
+		return
+	}
+	log.Fatalf("failed to %s: %v\n", action, err)
+}
+
 func main() {
-	file, err := mmap.Open("../../test.world")
-	if err != nil {
-		fmt.Printf("failed to open world: %v\n", err)
-		os.Exit(1)
+	flag.Parse()
+	if len(*world) == 0 {
+		flag.Usage()
+		return
 	}
-	w, err := starbound.NewWorld(file)
-	if err != nil {
-		fmt.Printf("failed to open world: %v\n", err)
-		os.Exit(1)
-	}
-	t, err := w.GetTiles(30, 21)
-	if err != nil {
-		fmt.Printf("failed to get region: %v\n", err)
-		os.Exit(1)
-	}
-	fmt.Println("region:", t)
+
+	g := newGame(*base)
+
+	var err error
+	err = g.LoadAsset("assets/packed.pak")
+	check(err, "load asset file")
+	err = g.OpenWorld(path.Join("storage/universe", *world))
+	check(err, "load world")
+	err = g.Run()
+	check(err, "start game")
 }
