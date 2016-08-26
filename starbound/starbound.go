@@ -48,3 +48,34 @@ type VersionedJSON struct {
 	Version int
 	Data    interface{}
 }
+
+// Gets the list at the specified key path if there is one; otherwise, nil.
+func (v *VersionedJSON) List(keys ...string) []interface{} {
+	if val, ok := v.Value(keys...).([]interface{}); ok {
+		return val
+	} else {
+		return nil
+	}
+}
+
+// Gets the map at the specified key path if there is one; otherwise, nil.
+func (v *VersionedJSON) Map(keys ...string) map[string]interface{} {
+	if val, ok := v.Value(keys...).(map[string]interface{}); ok {
+		return val
+	} else {
+		return nil
+	}
+}
+
+// Gets the value at a specific key path if there is one; otherwise, nil.
+func (v *VersionedJSON) Value(keys ...string) interface{} {
+	val := v.Data
+	for _, key := range keys {
+		m, ok := val.(map[string]interface{})
+		if !ok {
+			return nil
+		}
+		val = m[key]
+	}
+	return val
+}
