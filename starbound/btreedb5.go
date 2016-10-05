@@ -26,15 +26,13 @@ func NewBTreeDB5(r io.ReaderAt) (db *BTreeDB5, err error) {
 	db.KeySize = getInt(header, 28)
 	db.Swap = (header[32] == 1)
 	db.freeBlock1 = getInt(header, 33)
-	// Skip 3 bytes...
-	db.unknown1 = getInt(header, 40)
-	// Skip 1 byte...
+	db.unknown1 = getInt(header, 37)
+	db.freeBlock1End = getInt(header, 41)
 	db.rootBlock1 = getInt(header, 45)
 	db.rootBlock1IsLeaf = (header[49] == 1)
 	db.freeBlock2 = getInt(header, 50)
-	// Skip 3 bytes...
-	db.unknown2 = getInt(header, 57)
-	// Skip 1 byte...
+	db.unknown2 = getInt(header, 54)
+	db.freeBlock2End = getInt(header, 58)
 	db.rootBlock2 = getInt(header, 62)
 	db.rootBlock2IsLeaf = (header[66] == 1)
 	return
@@ -49,6 +47,8 @@ type BTreeDB5 struct {
 	r io.ReaderAt
 
 	freeBlock1, freeBlock2 int
+	freeBlock1End          int
+	freeBlock2End          int
 	rootBlock1, rootBlock2 int
 	rootBlock1IsLeaf       bool
 	rootBlock2IsLeaf       bool
