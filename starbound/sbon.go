@@ -90,7 +90,7 @@ func ReadVarint(r io.Reader) (v int64, err error) {
 		return
 	}
 	if uv&1 == 1 {
-		return -int64(uv >> 1), nil
+		return -int64(uv>>1) - 1, nil
 	} else {
 		return int64(uv >> 1), nil
 	}
