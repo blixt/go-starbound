@@ -20,11 +20,11 @@ type Tile struct {
 	Liquid                uint8
 	LiquidLevel           float32
 	LiquidPressure        float32
-	LiquidInfinite        uint8 // bool
+	LiquidInfinite        bool
 	Collision             uint8
 	DungeonID             uint16
 	Biome1, Biome2        uint8
-	Indestructible        uint8 // bool
+	Indestructible        bool
 }
 
 // NewWorld creates and initializes a new World using r as the data source.

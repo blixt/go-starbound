@@ -7,6 +7,8 @@ store worlds, player characters, assets, etc.
 Feel free to contribute either via submitting pull requests or writing
 up issues with suggestions and/or bugs.
 
+**Minimum Go version: 1.8**
+
 
 File & data formats
 -------------------
