@@ -19,22 +19,26 @@ func ReadVersionedJSON(r io.Reader) (v VersionedJSON, err error) {
 	if err != nil {
 		return
 	}
-	// Read unknown byte which is always 0x01.
+	// Read version flag (boolean).
 	buf := make([]byte, 1)
 	_, err = io.ReadFull(r, buf)
 	if err != nil {
 		return
 	}
-	if buf[0] != 1 {
-		return v, ErrInvalidData
+	if buf[0] == 0 {
+		// This data structure has no version.
+		v.HasVersion = false
+		v.Version = -1
+	} else {
+		v.HasVersion = true
+		// Read the data structure version.
+		var version int32
+		err = binary.Read(r, binary.BigEndian, &version)
+		if err != nil {
+			return
+		}
+		v.Version = int(version)
 	}
-	// Read the data structure version.
-	var version int32
-	err = binary.Read(r, binary.BigEndian, &version)
-	if err != nil {
-		return
-	}
-	v.Version = int(version)
 	// Finally, read the JSON-like data itself.
 	v.Data, err = ReadDynamic(r)
 	return
@@ -44,9 +48,10 @@ func ReadVersionedJSON(r io.Reader) (v VersionedJSON, err error) {
 // has a name and version associated with it so that the reader may migrate the
 // structure based on the name/version.
 type VersionedJSON struct {
-	Name    string
-	Version int
-	Data    interface{}
+	Name       string
+	HasVersion bool
+	Version    int
+	Data       interface{}
 }
 
 // Gets the list at the specified key path if there is one; otherwise, nil.
