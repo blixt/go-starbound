@@ -65,7 +65,7 @@ func (a *SBAsset6) GetReader(path string) (r io.Reader, err error) {
 
 func (a *SBAsset6) ReadIndex() error {
 	a.Index = make(map[string]IndexEntry, a.FileCount)
-	buf := make([]byte, 255)
+	buf := make([]byte, 16)
 	r := &readerAtReader{r: a.r, off: a.index}
 	for i := 0; i < a.FileCount; i++ {
 		// Read the path, which will be used as the index key.
@@ -74,7 +74,7 @@ func (a *SBAsset6) ReadIndex() error {
 			return err
 		}
 		// Read the offset and size of the file.
-		_, err = r.Read(buf[:16])
+		_, err = r.Read(buf)
 		if err != nil {
 			return err
 		}
