@@ -68,18 +68,11 @@ func (a *SBAsset6) ReadIndex() error {
 	buf := make([]byte, 255)
 	r := &readerAtReader{r: a.r, off: a.index}
 	for i := 0; i < a.FileCount; i++ {
-		// Read the length of the path (uint8).
-		_, err := r.Read(buf[:1])
+		// Read the path, which will be used as the index key.
+		key, err := ReadString(r)
 		if err != nil {
 			return err
 		}
-		// Read the path itself, which will be used as the index key.
-		bufpath := buf[:buf[0]]
-		_, err = r.Read(bufpath)
-		if err != nil {
-			return err
-		}
-		key := string(bufpath)
 		// Read the offset and size of the file.
 		_, err = r.Read(buf[:16])
 		if err != nil {
